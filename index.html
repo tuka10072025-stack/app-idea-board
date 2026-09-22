@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#f3f3f3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <title>APP IDEA BOARD</title>
+  <style>
+    :root{--bg:#f3f3f3;--card:#fff;--text:#171717;--sub:#777;--line:#dcdcdc;--dark:#111}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .wrap{max-width:760px;margin:auto;padding:18px 12px 90px}
+    h1{margin:6px 4px 14px;font-size:24px;letter-spacing:.03em}
+    .panel{background:var(--card);border-radius:18px;padding:12px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .topline{display:grid;grid-template-columns:1.25fr .95fr .8fr;gap:7px;margin-bottom:8px}
+    .app-select-wrap{display:grid;grid-template-columns:1fr 36px;gap:5px;min-width:0}
+    .app-remove{border:0;border-radius:11px;background:#f0f0f0;color:#555;font-size:20px;font-weight:500;cursor:pointer;padding:0}
+    select,input,button{font:inherit}
+    select,input{width:100%;min-width:0;border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 9px;color:var(--text);outline:none}
+    .entryline{display:grid;grid-template-columns:1fr 74px;gap:7px}
+    .add{border:0;border-radius:11px;background:var(--dark);color:#fff;font-weight:750;cursor:pointer}
+    .minirow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:9px}
+    .hint{font-size:11px;color:#999}
+    .manage{width:auto;border:0;background:transparent;color:#666;font-size:12px;padding:4px 2px;cursor:pointer}
+    .section-title{margin:2px 4px 8px;font-size:13px;color:#777;display:flex;justify-content:space-between;align-items:center}
+    .count{color:#999;font-size:12px}
+    .item{background:#fff;border-radius:13px;padding:10px 10px 9px;margin-bottom:7px;box-shadow:0 1px 6px rgba(0,0,0,.035)}
+    .item-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+    .item-title{font-size:15px;line-height:1.35;font-weight:700;word-break:break-word}
+    .app-name{font-size:11px;color:#888;margin-bottom:2px;font-weight:600}
+    .delete{border:0;background:#f1f1f1;border-radius:9px;width:32px;height:32px;padding:0;color:#555;cursor:pointer;font-size:16px}
+    .meta{margin-top:7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .tag{font-size:11px;background:#f2f2f2;color:#555;padding:4px 7px;border-radius:999px}
+    .status{width:auto;min-width:90px;font-size:12px;padding:5px 26px 5px 8px;border-radius:999px;background:#fafafa}
+    .empty{text-align:center;color:#999;padding:30px 10px;font-size:13px}
+    dialog{border:0;border-radius:18px;width:min(92vw,480px);padding:0;box-shadow:0 16px 50px rgba(0,0,0,.22)}
+    dialog::backdrop{background:rgba(0,0,0,.28)}
+    .dialog-inner{padding:16px}
+    .dialog-title{font-weight:800;margin-bottom:12px}
+    .app-manage-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #eee}
+    .app-manage-row:last-child{border-bottom:0}
+    .small-del{width:auto;border:0;background:#f1f1f1;border-radius:9px;padding:7px 10px;cursor:pointer}
+    .dialog-close{margin-top:12px;width:100%;border:0;background:#111;color:white;border-radius:11px;padding:11px;font-weight:700}
+    @media(max-width:540px){
+      .wrap{padding-top:12px}
+      h1{font-size:22px}
+      .topline{grid-template-columns:1.2fr .95fr .8fr;gap:5px}
+      select,input{padding:10px 7px;font-size:14px}
+      .entryline{grid-template-columns:1fr 68px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>APP IDEA BOARD</h1>
+
+  <div class="panel">
+    <div class="topline">
+      <div class="app-select-wrap">
+        <select id="appName" aria-label="アプリ名"></select>
+        <button class="app-remove" onclick="deleteSelectedApp()" aria-label="選択中のアプリを削除">−</button>
+      </div>
+      <select id="type" aria-label="種類">
+        <option>アップデート案</option>
+        <option>新規アプリ案</option>
+        <option>不具合修正</option>
+        <option>改善案</option>
+        <option>その他</option>
+      </select>
+      <select id="status" aria-label="状態">
+        <option>まだ</option>
+        <option>途中</option>
+        <option>確認中</option>
+        <option>終わった</option>
+        <option>保留</option>
+      </select>
+    </div>
+
+    <div class="entryline">
+      <input id="title" placeholder="内容だけ入力" autocomplete="off">
+      <button class="add" onclick="addItem()">＋追加</button>
+    </div>
+
+    <div class="minirow">
+      <div class="hint">選択した内容は次回もそのまま残ります</div>
+      <button class="manage" onclick="openAppManager()">アプリ管理</button>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span>一覧</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="manage" onclick="deleteCompleted()">完了済みを削除</button>
+      <span id="count" class="count"></span>
+    </div>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<dialog id="appDialog">
+  <div class="dialog-inner">
+    <div class="dialog-title">アプリ名の管理</div>
+    <div id="appManagerList"></div>
+    <button class="dialog-close" onclick="document.getElementById('appDialog').close()">閉じる</button>
+  </div>
+</dialog>
+
+<script>
+const ITEM_KEY = "appIdeaBoard_v1";
+const APP_KEY = "appIdeaBoard_apps_v2";
+const PREF_KEY = "appIdeaBoard_pref_v1";
+
+let items = JSON.parse(localStorage.getItem(ITEM_KEY) || "[]");
+
+const defaultApps = ["MIRU","WAKERU","KAKOMON","ひらめきメモ","知識メモ","年間予定","将棋反省"];
+
+let apps = JSON.parse(localStorage.getItem(APP_KEY) || "null");
+if(!apps){
+  const oldCustom = JSON.parse(localStorage.getItem("appIdeaBoard_customApps_v1") || "[]");
+  const itemApps = items.map(x => x.appName).filter(Boolean);
+  apps = [...new Set([...defaultApps, ...oldCustom, ...itemApps])];
+  saveApps();
+}
+
+let prefs = JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
+
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function saveItems(){localStorage.setItem(ITEM_KEY, JSON.stringify(items))}
+function saveApps(){localStorage.setItem(APP_KEY, JSON.stringify(apps))}
+function savePrefs(){localStorage.setItem(PREF_KEY, JSON.stringify(prefs))}
+
+function refreshAppSelect(){
+  const sel = document.getElementById("appName");
+  const current = sel.value || prefs.appName || apps[0] || "";
+  sel.innerHTML =
+    apps.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join("") +
+    `<option value="__new__">＋新規アプリ</option>`;
+  if(apps.includes(current)) sel.value = current;
+  else if(apps.length) sel.value = apps[0];
+}
+
+function restorePrefs(){
+  refreshAppSelect();
+  const type = document.getElementById("type");
+  const status = document.getElementById("status");
+  const appName = document.getElementById("appName");
+  if(prefs.type && [...type.options].some(o => o.value === prefs.type)) type.value = prefs.type;
+  if(prefs.status && [...status.options].some(o => o.value === prefs.status)) status.value = prefs.status;
+  if(prefs.appName && apps.includes(prefs.appName)) appName.value = prefs.appName;
+}
+
+function handleAppSelection(){
+  const sel = document.getElementById("appName");
+  if(sel.value === "__new__"){
+    const name = prompt("新しいアプリ名");
+    if(name && name.trim()){
+      const app = name.trim();
+      if(!apps.includes(app)){apps.push(app);saveApps()}
+      refreshAppSelect();
+      sel.value = app;
+      prefs.appName = app;
+      savePrefs();
+      renderAppManager();
+    }else{
+      refreshAppSelect();
+    }
+  }else{
+    prefs.appName = sel.value;
+    savePrefs();
+  }
+}
+
+document.getElementById("appName").addEventListener("change", handleAppSelection);
+document.getElementById("type").addEventListener("change", e => {prefs.type=e.target.value;savePrefs()});
+document.getElementById("status").addEventListener("change", e => {prefs.status=e.target.value;savePrefs()});
+document.getElementById("title").addEventListener("keydown", e => {
+  if(e.key === "Enter"){e.preventDefault();addItem()}
+});
+
+function addItem(){
+  const appName = document.getElementById("appName").value;
+  const type = document.getElementById("type").value;
+  const status = document.getElementById("status").value;
+  const titleEl = document.getElementById("title");
+  const title = titleEl.value.trim();
+
+  if(appName === "__new__" || !appName){alert("アプリ名を選んでください");return}
+  if(!title){titleEl.focus();return}
+
+  items.unshift({
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+    appName,title,type,status,createdAt:new Date().toISOString()
+  });
+
+  prefs = {appName,type,status};
+  savePrefs();
+  saveItems();
+  titleEl.value = "";
+  titleEl.focus();
+  render();
+}
+
+function updateStatus(id, value){
+  const item = items.find(x => x.id === id);
+  if(!item) return;
+  item.status = value;
+  saveItems();
+  render();
+}
+
+function deleteItem(id){
+  if(!confirm("この項目を削除しますか？")) return;
+  items = items.filter(x => x.id !== id);
+  saveItems();
+  render();
+}
+
+function render(){
+  document.getElementById("count").textContent = `${items.length}件`;
+  const list = document.getElementById("list");
+  if(!items.length){
+    list.innerHTML = `<div class="empty">まだ登録がありません</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="item">
+      <div class="item-main">
+        <div>
+          <div class="app-name">${esc(item.appName || "未設定")}</div>
+          <div class="item-title">${esc(item.title)}</div>
+        </div>
+        <button class="delete" onclick="deleteItem('${item.id}')" aria-label="削除">×</button>
+      </div>
+      <div class="meta">
+        <span class="tag">${esc(item.type || "その他")}</span>
+        <select class="status" onchange="updateStatus('${item.id}', this.value)">
+          ${["まだ","途中","確認中","終わった","保留"].map(s =>
+            `<option ${item.status === s ? "selected" : ""}>${s}</option>`
+          ).join("")}
+        </select>
+      </div>
+    </div>
+  `).join("");
+}
+
+function deleteCompleted(){
+  const completed = items.filter(x => x.status === "終わった");
+  if(!completed.length){
+    alert("「終わった」の項目はありません");
+    return;
+  }
+
+  if(!confirm(`「終わった」${completed.length}件をまとめて削除しますか？`)) return;
+
+  items = items.filter(x => x.status !== "終わった");
+  saveItems();
+  render();
+}
+
+
+function deleteSelectedApp(){
+  const sel = document.getElementById("appName");
+  const app = sel.value;
+
+  if(!app || app === "__new__"){
+    alert("削除するアプリを選んでください");
+    return;
+  }
+
+  if(!confirm(`「${app}」をプルダウンから削除しますか？\n登録済みの案件は消えません。`)) return;
+
+  apps = apps.filter(x => x !== app);
+  saveApps();
+
+  if(prefs.appName === app){
+    prefs.appName = apps[0] || "";
+    savePrefs();
+  }
+
+  refreshAppSelect();
+  renderAppManager();
+}
+
+function openAppManager(){
+  renderAppManager();
+  document.getElementById("appDialog").showModal();
+}
+
+function renderAppManager(){
+  const box = document.getElementById("appManagerList");
+  if(!apps.length){
+    box.innerHTML = `<div class="empty">登録アプリはありません</div>`;
+    return;
+  }
+  box.innerHTML = apps.map((app, i) => `
+    <div class="app-manage-row">
+      <span>${esc(app)}</span>
+      <button class="small-del" onclick="deleteApp(${i})">削除</button>
+    </div>
+  `).join("");
+}
+
+function deleteApp(index){
+  const app = apps[index];
+  if(!confirm(`「${app}」をプルダウンから削除しますか？\n登録済みの案件は消えません。`)) return;
+  apps.splice(index,1);
+  saveApps();
+
+  if(prefs.appName === app){
+    prefs.appName = apps[0] || "";
+    savePrefs();
+  }
+  refreshAppSelect();
+  renderAppManager();
+}
+
+restorePrefs();
+render();
+</script>
+</body>
+</html>
